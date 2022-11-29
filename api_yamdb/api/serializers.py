@@ -3,6 +3,12 @@ from rest_framework import serializers
 from reviews.models import Comment, User, Review
 
 
+class SignupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+        
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
