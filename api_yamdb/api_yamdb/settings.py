@@ -56,6 +56,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_yamdb.wsgi.application'
 
+AUTH_USER_MODEL = 'reviews.CustomUser'
+
 
 # Database
 
