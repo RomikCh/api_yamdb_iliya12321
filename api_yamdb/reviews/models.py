@@ -30,7 +30,7 @@ class Review(models.Model):
         verbose_name="Оценка",
         validators=[
             MinValueValidator(
-                1,message='Убедитесь, что введено число больше или равно 1'
+                1, message='Убедитесь, что введено число больше или равно 1'
             ),
             MaxValueValidator(10, message='Убедитесь, что введено число меньше или равно 10')
         ],
