@@ -23,3 +23,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('title',)
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=("author", "title"),
+                message="Вы уже оставили отзыв!",
+            )
+        ]
