@@ -3,8 +3,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
-Title = 'Произведение'
-
 class User(AbstractUser):
     ROLES = (
         ('user', 'Пользователь'),
