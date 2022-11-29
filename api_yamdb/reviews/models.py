@@ -26,6 +26,7 @@ class Category(models.Model):
         max_length=256,
     )
     slug = models.SlugField(
+        unique=True,
         verbose_name='Идентификатор категории',
         max_length=50
     )
@@ -40,6 +41,7 @@ class Genre(models.Model):
         max_length=256,
     )
     slug = models.SlugField(
+        unique=True,
         verbose_name='Идентификатор жанра',
         max_length=50,
     )
@@ -58,13 +60,13 @@ class Title(models.Model):
     )
     description = models.TextField(
         'описание',
-        null=True
+        null=True,
+        blank=True,
     )
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
         on_delete=models.SET_NULL,
-        blank=True,
         null=True,
         related_name='titles'
     )
@@ -72,7 +74,6 @@ class Title(models.Model):
         Genre,
         verbose_name='Жанр',
         related_name='titles',
-        blank=True,
         through='GenreAndTitle',
     )
 
@@ -81,7 +82,7 @@ class Title(models.Model):
 
 
 class GenreAndTitle(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL)
+    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
