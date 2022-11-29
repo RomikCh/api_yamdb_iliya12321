@@ -101,21 +101,28 @@ class GenreAndTitle(models.Model):
 
 class Review(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews')
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews')
+        Title, on_delete=models.CASCADE, related_name='reviews'
+    )
     score = models.SmallIntegerField(
         verbose_name="Оценка",
         validators=[
             MinValueValidator(
                 1, message='Убедитесь, что введенное число больше или равно 1'
             ),
-            MaxValueValidator(10, message='Убедитесь, что введенное число меньше или равно 10')
+            MaxValueValidator(
+                10, message=(
+                    'Убедитесь, что введенное число меньше или равно 10'
+                )
+            )
         ],
     )
     text = models.TextField("Текст", help_text="Отзыв")
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True)
+        'Дата публикации', auto_now_add=True, db_index=True
+    )
 
     def __str__(self):
         return '"{}" - отзыв на "{}" Автор: "{}"'.format(
