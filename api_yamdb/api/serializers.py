@@ -1,13 +1,29 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import Comment, User, Review
+from reviews.models import Comment, Review, Title, User, Genre, Category
 
 
 class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
+
+    class Meta:
+        model = Title
+        fields = '__all__'
 
 
 class CommentSerializer(serializers.ModelSerializer):
