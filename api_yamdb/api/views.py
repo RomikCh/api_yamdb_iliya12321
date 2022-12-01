@@ -7,9 +7,7 @@ from api.serializers import CommentSerializer, ReviewSerializer, TitleSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.aggregate(
-        Avg("reviews__score")
-    ).order_by("name")
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = 'потом'
     filter_backends = (DjangoFilterBackend,)
