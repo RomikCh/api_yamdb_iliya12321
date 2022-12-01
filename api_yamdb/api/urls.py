@@ -10,7 +10,6 @@ from api.views import (
     ReviewViewSet
 )
 
-app_name = 'api'
 
 router_v1 = DefaultRouter()
 
