@@ -2,16 +2,15 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
-from reviews.models import Review, Title
-from api.serializers import CommentSerializer, ReviewSerializer, TitleSerializer
 
-
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = 'потом'
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+from reviews.models import Review, Title, Category, Genre
+from api.serializers import (
+    CommentSerializer,
+    ReviewSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer
+)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -40,3 +39,34 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+
+
+class GetPostDelete(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
+
+
+class CategoryViewSet(GetPostDelete):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_filed = 'slug'
+    #  permission_classes = (админ на создание, получить кто угодно)
+
+
+class GenreViewSet(GetPostDelete):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    lookup_filed = 'slug'
+    #  permission_classes = (админ на создание, получить кто угодно)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = 'потом'
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category', 'genre', 'name', 'year')
