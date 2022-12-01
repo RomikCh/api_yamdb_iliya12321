@@ -1,7 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
-from reviews.models import Review, Title
-from api.serializers import CommentSerializer, ReviewSerializer
+from reviews.models import Review, Title, Category, Genre
+from api.serializers import (
+    CommentSerializer,
+    ReviewSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer
+)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -30,3 +36,31 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+
+
+class GetPostDelete(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
+
+
+class CategoryViewSet(GetPostDelete):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_filed = 'slug'
+    #  permission_classes = (админ на создание, получить кто угодно)
+
+
+class GenreViewSet(GetPostDelete):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    lookup_filed = 'slug'
+    #  permission_classes = (админ на создание, получить кто угодно)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    serializer_class = TitleSerializer
+    #  permission_classes = ()
