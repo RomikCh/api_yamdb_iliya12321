@@ -1,5 +1,8 @@
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
+
 from reviews.models import Review, Title, Category, Genre
 from api.serializers import (
     CommentSerializer,
@@ -32,7 +35,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def get_queryset(self):
-        return self.get_title().reviews
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
@@ -62,5 +65,8 @@ class GenreViewSet(GetPostDelete):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    #  permission_classes = ()
+    permission_classes = 'потом'
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category', 'genre', 'name', 'year')
