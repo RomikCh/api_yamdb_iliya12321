@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 
@@ -5,18 +6,23 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import filters, mixins, viewsets, status
 
-from reviews.models import Review, Title, User
-from api.serializers import (
-    CommentSerializer,
-    ReviewSerializer,
-    UserSerializer,
-    UserMeSerializer,
-    SignUpSerializer,
-)
 from api.permissions import (
     IsAuthorModerAdminOrReadOnly,
     IsOwner,
     IsAdmin,
+    IsAdminOrReadOnly,
+)
+
+from reviews.models import Review, Title, Category, Genre, User
+from api.serializers import (
+    CommentSerializer,
+    ReviewSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+    UserSerializer,
+    UserMeSerializer,
+    SignUpSerializer,
 )
 
 
@@ -42,11 +48,41 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def get_queryset(self):
-        return self.get_title().reviews
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
 
+
+class GetPostDelete(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
+
+
+class CategoryViewSet(GetPostDelete):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_filed = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class GenreViewSet(GetPostDelete):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    lookup_filed = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = 'потом'
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category', 'genre', 'name', 'year')
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
