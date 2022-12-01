@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import (
     Comment,
     User,
-    Review, 
+    Review,
     Category,
     Genre,
     Title
@@ -28,13 +28,13 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(
-        source='password',
-        read_only=True,
-        required=False
-    )
+    # confirmation_code = serializers.HiddenField(
+    #     source='password',
+    #     read_only=True,
+    #     required=False
+    # )
     is_active = serializers.HiddenField(
-        read_only=True,
+        #read_only=True,
         default=False
     )
 
@@ -57,7 +57,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
         source='password',
         default=random.randint(10000, 99999),
-        read_only=True
+        #read_only=True
     )
 
     class Meta:
