@@ -1,7 +1,14 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import Comment, User, Review, Category, Genre, Title
+from reviews.models import (
+    Comment,
+    User,
+    Review, 
+    Category,
+    Genre,
+    Title
+)
 
 
 class SignupSerializer(serializers.ModelSerializer):
