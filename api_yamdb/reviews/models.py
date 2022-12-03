@@ -1,6 +1,67 @@
-from django.contrib.auth.models import AbstractUser
+import random
+
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+
+class UserManager(BaseUserManager):
+    def create_superuser(
+        self,
+        username,
+        email,
+        password,
+        **other_fields
+    ):
+        other_fields.setdefault('is_staff', True)
+        other_fields.setdefault('is_superuser', True)
+
+        if other_fields.get('is_staff') is not True:
+            raise ValueError('Для суперпользователя is_staff '
+                             'должен быть равен True')
+
+        if other_fields.get('is_superuser') is not True:
+            raise ValueError('Для суперпользователя is_superuser '
+                             'должен быть равен True')
+
+        if not email:
+            raise ValueError('Введите email!')
+
+        if not username:
+            raise ValueError('Введите username!')
+
+        email = self.normalize_email(email)
+        user = self.model(
+            username=username,
+            email=email,
+            **other_fields
+        )
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_user(
+        self,
+        username,
+        email,
+        **other_fields
+    ):
+        if not email:
+            raise ValueError('Введите email!')
+
+        if not username:
+            raise ValueError('Введите username!')
+
+        email = self.normalize_email(email)
+        user = self.model(
+            username=username,
+            email=email,
+            **other_fields
+        )
+        password = 5 * random.randint(10000, 99999)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class User(AbstractUser):
@@ -19,6 +80,16 @@ class User(AbstractUser):
         unique=True,
         blank=False
     )
+    first_name = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True
+    )
+    last_name = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True
+    )
     bio = models.TextField(
         verbose_name='Биография',
         blank=True,
@@ -30,6 +101,13 @@ class User(AbstractUser):
         choices=ROLES,
         default='user'
     )
+    confirmation_code = models.SlugField(
+        max_length=5,
+        null=True,
+        blank=True
+    )
+
+    objects = UserManager()
 
 
 class Category(models.Model):

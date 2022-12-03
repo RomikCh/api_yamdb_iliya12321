@@ -1,12 +1,13 @@
 import random
 
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import (
     Comment,
     User,
-    Review, 
+    Review,
     Category,
     Genre,
     Title
@@ -29,13 +30,7 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
-        source='password',
-        read_only=True,
-        required=False
-    )
-    is_active = serializers.HiddenField(
-        read_only=True,
-        default=False
+        default=random.randint(10000, 99999),
     )
 
     class Meta:
@@ -48,16 +43,13 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
             'confirmation_code',
-            'is_active'
         )
         lookup_field = 'username'
 
 
 class SignUpSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
-        source='password',
         default=random.randint(10000, 99999),
-        read_only=True
     )
 
     class Meta:
@@ -83,7 +75,7 @@ class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
@@ -137,19 +129,3 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ('name', 'slug',)
         lookup_filed = 'slug'
-
-
-class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        slug_field='slug',
-        many=True
-    )
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug',
-    )
-
-    class Meta:
-        model = Title
-        fields = '__all__'

@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import filters, mixins, viewsets, status
+from rest_framework import mixins, viewsets, status
 
 from api.permissions import (
     IsAuthorModerAdminOrReadOnly,
@@ -80,9 +80,10 @@ class GenreViewSet(GetPostDelete):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = 'потом'
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category', 'genre', 'name', 'year')
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -114,19 +115,18 @@ class APIUserMe(APIView):
 
 class APISignUp(APIView):
     def post(self, request):
-        username = request.data.username
-        email = request.data.email
-        confirmation_code = request.data.confirmation_code
-        message = (
-            f'Ваш код: {confirmation_code}\n'
-            'Перейдите по адресу '
-            'http://127.0.0.1:8000/api/v1/auth/token и введите его '
-            'вместе со своим username'
-        )
-
-        serializer = SignUpSerializer(data=request.data)
+        username = request.data.get('username')
+        email = request.data.get('email')
 
         if not User.objects.get(username=username, email=email).exists():
+            confirmation_code = request.data.get('confirmation_code')
+            message = (
+                f'Ваш код: {confirmation_code}\n'
+                'Перейдите по адресу '
+                'http://127.0.0.1:8000/api/v1/auth/token и введите его '
+                'вместе со своим username'
+            )
+            serializer = SignUpSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 send_mail(
@@ -145,6 +145,14 @@ class APISignUp(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         else:
+            user = User.objects.get(username=username)
+            confirmation_code = user.confirmation_code
+            message = (
+                f'Ваш код: {confirmation_code}\n'
+                'Перейдите по адресу '
+                'http://127.0.0.1:8000/api/v1/auth/token и введите его '
+                'вместе со своим username'
+            )
             send_mail(
                 'Завершение регистрации',
                 message,
