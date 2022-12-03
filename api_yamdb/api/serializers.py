@@ -1,6 +1,7 @@
 import random
 import datetime
 
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -29,15 +30,8 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # confirmation_code = serializers.HiddenField(
-    #     source='password',
-    #     read_only=True,
-    #     required=False
-    # )
-    is_active = serializers.HiddenField(
-        #read_only=True,
-        default=False
-    )
+    confirmation_code = serializers.HiddenField(
+        default=random.randint(10000, 99999),
 
     class Meta:
         model = User
@@ -49,16 +43,13 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
             'confirmation_code',
-            'is_active'
         )
         lookup_field = 'username'
 
 
 class SignUpSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
-        source='password',
         default=random.randint(10000, 99999),
-        #read_only=True
     )
 
     class Meta:
@@ -84,7 +75,7 @@ class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     def validate_year(self, value):
         year = datetime.date.today().year
