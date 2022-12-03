@@ -32,6 +32,7 @@ class UserMeSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
         default=random.randint(10000, 99999),
+    )
 
     class Meta:
         model = User
