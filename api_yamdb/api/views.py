@@ -89,7 +89,7 @@ class GenreViewSet(GetPostDelete):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = 'потом'
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category', 'genre', 'name', 'year')
     # pagination_class = None   Поставить PageNumberPagination если нужно
