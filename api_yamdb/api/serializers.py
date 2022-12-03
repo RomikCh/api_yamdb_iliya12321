@@ -1,4 +1,5 @@
 import random
+import datetime
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -6,7 +7,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import (
     Comment,
     User,
-    Review, 
+    Review,
     Category,
     Genre,
     Title
@@ -28,13 +29,13 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(
-        source='password',
-        read_only=True,
-        required=False
-    )
+    # confirmation_code = serializers.HiddenField(
+    #     source='password',
+    #     read_only=True,
+    #     required=False
+    # )
     is_active = serializers.HiddenField(
-        read_only=True,
+        #read_only=True,
         default=False
     )
 
@@ -57,7 +58,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
         source='password',
         default=random.randint(10000, 99999),
-        read_only=True
+        #read_only=True
     )
 
     class Meta:
@@ -84,6 +85,14 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug', queryset=Category.objects.all()
     )
     rating = serializers.SerializerMethodField(read_only=True)
+
+    def validate_year(self, value):
+        year = datetime.date.today().year
+        if value > year:
+            raise serializers.ValidationError(
+                'Год издания не может быть больше текущего года'
+            )
+        return value
 
     class Meta:
         model = Title
@@ -137,19 +146,3 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ('name', 'slug',)
         lookup_filed = 'slug'
-
-
-class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        slug_field='slug',
-        many=True
-    )
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug',
-    )
-
-    class Meta:
-        model = Title
-        fields = '__all__'
