@@ -28,7 +28,7 @@ from api.serializers import (
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorModerAdminOrReadOnly,)
+    permission_classes = [IsAuthorModerAdminOrReadOnly,]
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
@@ -80,7 +80,7 @@ class GenreViewSet(GetPostDelete):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = 'потом'
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category', 'genre', 'name', 'year')
 

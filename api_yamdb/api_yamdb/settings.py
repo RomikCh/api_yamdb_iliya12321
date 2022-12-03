@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'rest_framework',
     'rest_framework.authtoken',
-    'djoser'
 ]
 
 MIDDLEWARE = [

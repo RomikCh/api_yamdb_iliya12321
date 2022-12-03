@@ -152,7 +152,7 @@ class Comment(models.Model):
         'Дата публикации', auto_now_add=True, db_index=True)
 
     def __str__(self):
-        return '"{}" - комментарий на данный отзыв: "{}" Автор: "{}"'.format(
+        return '{} - комментарий на данный отзыв: {} Автор: {}'.format(
             self.text,
             self.review,
             self.author
