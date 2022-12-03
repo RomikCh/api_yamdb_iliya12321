@@ -12,7 +12,7 @@ class IsAuthorModerAdminOrReadOnly(permissions.BasePermission):
         if request.method == 'POST':
             return request.user.is_authenticated
 
-        if request.method in ['PATCH', 'DELETE']:
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
             return (
                 obj.author == request.user
                 or request.user.is_superuser
