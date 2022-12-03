@@ -31,10 +31,15 @@ class User(AbstractUser):
         default='user'
     )
 
+    class Meta:
+        ordering = ('username',)
+        verbose_name = 'Пользователь',
+        verbose_name_plural = 'Пользователи'
+
 
 class Category(models.Model):
     name = models.CharField(
-        verbose_name='категория',
+        verbose_name='Категория',
         max_length=256,
     )
     slug = models.SlugField(
@@ -45,6 +50,11 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Категория',
+        verbose_name_plural = 'Категории'
 
 
 class Genre(models.Model):
@@ -60,6 +70,11 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Жанры',
+        verbose_name_plural = 'Жанры'
 
 
 class Title(models.Model):
@@ -91,6 +106,10 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'Название',
+        verbose_name_plural = 'Названия'
 
 
 class GenreAndTitle(models.Model):
@@ -140,6 +159,8 @@ class Review(models.Model):
                 fields=["author", "title"], name="unique_review"
             )
         ]
+        verbose_name = 'Отзыв',
+        verbose_name_plural = 'Отзывы'
 
 
 class Comment(models.Model):
@@ -160,3 +181,5 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["-pub_date"]
+        verbose_name = 'Комментарий',
+        verbose_name_plural = 'Комментарии'

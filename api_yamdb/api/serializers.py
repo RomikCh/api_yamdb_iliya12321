@@ -1,4 +1,5 @@
 import random
+import datetime
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -84,6 +85,14 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug', queryset=Category.objects.all()
     )
     rating = serializers.SerializerMethodField(read_only=True)
+
+    def validate_year(self, value):
+        year = datetime.date.today().year
+        if value > year:
+            raise serializers.ValidationError(
+                'Год издания не может быть больше текущего года'
+            )
+        return value
 
     class Meta:
         model = Title
