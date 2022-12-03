@@ -1,4 +1,5 @@
 import random
+import datetime
 
 from django.db.models import Avg
 from rest_framework import serializers
@@ -31,7 +32,6 @@ class UserMeSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
         default=random.randint(10000, 99999),
-    )
 
     class Meta:
         model = User
@@ -76,6 +76,14 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug', queryset=Category.objects.all()
     )
     rating = serializers.SerializerMethodField()
+
+    def validate_year(self, value):
+        year = datetime.date.today().year
+        if value > year:
+            raise serializers.ValidationError(
+                'Год издания не может быть больше текущего года'
+            )
+        return value
 
     class Meta:
         model = Title
