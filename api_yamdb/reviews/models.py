@@ -58,7 +58,7 @@ class UserManager(BaseUserManager):
             email=email,
             **other_fields
         )
-        password = 5 * random.randint(10000, 99999)
+        password = random.randint(10000, 99999)**2
         user.set_password(password)
         user.save()
         return user
