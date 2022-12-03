@@ -28,7 +28,7 @@ from api.serializers import (
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorModerAdminOrReadOnly,]
+    permission_classes = (IsAuthorModerAdminOrReadOnly,)
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
