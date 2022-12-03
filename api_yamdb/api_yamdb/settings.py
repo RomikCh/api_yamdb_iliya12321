@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     'django_filters',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
-    'rest_framework',
     'rest_framework.authtoken',
 ]
 
