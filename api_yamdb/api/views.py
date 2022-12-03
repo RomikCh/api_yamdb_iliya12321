@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import mixins, viewsets, status
+from rest_framework import filters, mixins, viewsets, status
 
 from api.permissions import (
     IsAuthorModerAdminOrReadOnly,
