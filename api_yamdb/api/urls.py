@@ -9,7 +9,8 @@ from api.views import (
     ReviewViewSet,
     UserViewSet,
     APIUserMe,
-    APISignUp
+    APISignUp,
+    APIGetToken
 )
 
 router_v1 = DefaultRouter()
@@ -35,5 +36,6 @@ router_v1.register(
 urlpatterns = [
     path('v1/users/me/', APIUserMe.as_view()),
     path('v1/auth/signup/', APISignUp.as_view()),
+    path('v1/auth/token/', APIGetToken.as_view()),
     path('v1/', include(router_v1.urls)),
 ]

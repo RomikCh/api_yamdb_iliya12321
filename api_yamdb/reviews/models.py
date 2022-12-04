@@ -37,6 +37,7 @@ class UserManager(BaseUserManager):
             **other_fields
         )
         user.set_password(password)
+        user.role = 'admin'
         user.save()
         return user
 
