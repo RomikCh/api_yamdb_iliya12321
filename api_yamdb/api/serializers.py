@@ -69,6 +69,16 @@ class SignUpSerializer(serializers.ModelSerializer):
         return value
 
 
+class GetTokenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'confirmation_code'
+        )
+
+
 class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
@@ -91,7 +101,7 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_rating(self, obj):
-        return Review.objects.aggregate(Avg('score'))
+        return Review.objects.filter(title=obj.pk).aggregate(Avg('score'))
 
 
 class CommentSerializer(serializers.ModelSerializer):
