@@ -30,10 +30,6 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(
-        default=random.randint(10000, 99999),
-    )
-
     class Meta:
         model = User
         fields = (
@@ -43,7 +39,6 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'bio',
             'role',
-            'confirmation_code',
         )
         lookup_field = 'username'
 
@@ -69,16 +64,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         return value
 
 
-class GetTokenSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'confirmation_code'
-        )
-
-
 class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
@@ -101,6 +86,8 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_rating(self, obj):
+        if not Review.objects.filter(title=obj.pk).exists():
+            return None
         return Review.objects.filter(title=obj.pk).aggregate(Avg('score'))
 
 
