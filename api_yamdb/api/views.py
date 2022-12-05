@@ -27,6 +27,7 @@ from api.serializers import (
     UserSerializer,
     UserMeSerializer,
     SignUpSerializer,
+    GetTokenSerializer
 )
 
 
@@ -72,7 +73,7 @@ class GetPostDelete(
 class CategoryViewSet(GetPostDelete):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_filed = 'slug'
+    lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
     # pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)  # фильтр сделал
@@ -82,7 +83,7 @@ class CategoryViewSet(GetPostDelete):
 class GenreViewSet(GetPostDelete):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    lookup_filed = 'slug'
+    lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
     # pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)  # фильтр сделал
@@ -189,13 +190,21 @@ class APISignUp(APIView):
 
 class APIGetToken(APIView):
     def post(self, request):
+
         username = request.data.get('username')
+        serializer = GetTokenSerializer(data=request.data)
 
         if not User.objects.filter(
             username=username
         ).exists():
+            if serializer.is_valid():
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_404_NOT_FOUND
+                )
             return Response(
-                status=status.HTTP_404_NOT_FOUND
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         user = User.objects.get(username=username)
@@ -205,7 +214,6 @@ class APIGetToken(APIView):
             )
 
         access = AccessToken.for_user(user)
-
         return Response(
             {
                 'token': f'Bearer {access}',

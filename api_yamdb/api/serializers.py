@@ -43,6 +43,16 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field = 'username'
 
 
+class GetTokenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'confirmation_code'
+        )
+
+
 class SignUpSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.HiddenField(
         default=random.randint(10000, 99999),
@@ -126,7 +136,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug',)
-        lookup_filed = 'slug'
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -134,4 +144,4 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug',)
-        lookup_filed = 'slug'
+        lookup_field = 'slug'
