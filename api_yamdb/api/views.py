@@ -1,9 +1,11 @@
+import random
+
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import filters, mixins, viewsets, status
@@ -71,7 +73,7 @@ class GetPostDelete(
 class CategoryViewSet(GetPostDelete):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_filed = 'slug'
+    lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
     # pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)  # фильтр сделал
@@ -81,7 +83,7 @@ class CategoryViewSet(GetPostDelete):
 class GenreViewSet(GetPostDelete):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    lookup_filed = 'slug'
+    lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
     # pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)  # фильтр сделал
@@ -162,9 +164,10 @@ class APISignUp(APIView):
             )
         else:
             user = User.objects.get(username=username)
-            confirmation_code = user.confirmation_code
+            user.confirmation_code = random.randint(10000, 99999)
+            user.save()
             message = (
-                f'Ваш код: {confirmation_code}\n'
+                f'Ваш код: {user.confirmation_code}\n'
                 'Перейдите по адресу '
                 'http://127.0.0.1:8000/api/v1/auth/token и введите его '
                 'вместе со своим username'
@@ -176,34 +179,44 @@ class APISignUp(APIView):
                 [email, ],
                 fail_silently=True
             )
+            return Response(
+                {
+                    'username': username,
+                    'email': email
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class APIGetToken(APIView):
     def post(self, request):
+
         username = request.data.get('username')
         serializer = GetTokenSerializer(data=request.data)
 
-        if serializer.is_valid():
-            if not User.objects.filter(
-                username=username
-            ).exists():
+        if not User.objects.filter(
+            username=username
+        ).exists():
+            if serializer.is_valid():
                 return Response(
                     serializer.errors,
                     status=status.HTTP_404_NOT_FOUND
                 )
-            user = User.objects.get(username=username)
-            if request.data.get('confirmation_code') != user.confirmation_code:
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            refresh = RefreshToken.for_user(user)
-
             return Response(
-                {
-                    'token': f'Bearer {refresh.access_token}',
-                },
-                status=status.HTTP_200_OK
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(username=username)
+        if request.data.get('confirmation_code') != user.confirmation_code:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        access = AccessToken.for_user(user)
+        return Response(
+            {
+                'token': f'Bearer {access}',
+            },
+            status=status.HTTP_200_OK
+        )

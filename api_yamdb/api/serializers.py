@@ -30,10 +30,6 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(
-        default=random.randint(10000, 99999),
-    )
-
     class Meta:
         model = User
         fields = (
@@ -43,9 +39,18 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'bio',
             'role',
-            'confirmation_code',
         )
         lookup_field = 'username'
+
+
+class GetTokenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'confirmation_code'
+        )
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -67,16 +72,6 @@ class SignUpSerializer(serializers.ModelSerializer):
                 'Вы не можете использовать me как username!'
             )
         return value
-
-
-class GetTokenSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'confirmation_code'
-        )
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -101,6 +96,8 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_rating(self, obj):
+        if not Review.objects.filter(title=obj.pk).exists():
+            return None
         return Review.objects.filter(title=obj.pk).aggregate(Avg('score'))
 
 
@@ -139,7 +136,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug',)
-        lookup_filed = 'slug'
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -147,4 +144,4 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug',)
-        lookup_filed = 'slug'
+        lookup_field = 'slug'

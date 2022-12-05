@@ -166,7 +166,6 @@ class Test00UserRegistration:
 
     @pytest.mark.django_db(transaction=True)
     def test_00_obtain_jwt_token_invalid_data(self, client):
-
         request_type = 'POST'
         response = client.post(self.url_token)
         assert response.status_code != 404, (
