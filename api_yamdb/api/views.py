@@ -9,7 +9,6 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import filters, mixins, viewsets, status
-from rest_framework.pagination import PageNumberPagination
 
 from api.permissions import (
     IsAuthorModerAdminOrReadOnly,
@@ -27,8 +26,10 @@ from api.serializers import (
     UserSerializer,
     UserMeSerializer,
     SignUpSerializer,
-    GetTokenSerializer
+    GetTokenSerializer,
+    TitleCreateAndUpdateSerializer
 )
+from .filters import TitleFilter
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -43,7 +44,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.get_review())
-    # pagination_class = None   Поставить PageNumberPagination если нужно
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -58,7 +58,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
-    # pagination_class = None  # Поставить PageNumberPagination если нужно
 
 
 class GetPostDelete(
@@ -75,9 +74,8 @@ class CategoryViewSet(GetPostDelete):
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
-    # pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)  # фильтр сделал
-    search_fields = ('name',)  # фильтр сделал
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
 
 
 class GenreViewSet(GetPostDelete):
@@ -85,9 +83,8 @@ class GenreViewSet(GetPostDelete):
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
-    # pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)  # фильтр сделал
-    search_fields = ('name',)  # фильтр сделал
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -95,8 +92,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
-    # pagination_class = None   Поставить PageNumberPagination если нужно
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH'):
+            return TitleCreateAndUpdateSerializer
+        return TitleSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -104,7 +105,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
     lookup_field = 'username'
-    # pagination_class = PageNumberPagination  пагинация
 
 
 class APIUserMe(APIView):

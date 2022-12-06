@@ -197,7 +197,11 @@ class GenreAndTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'жанр {self.title} - {self.genre}'
+        return f'{self.title} - {self.genre}'
+
+    class Meta:
+        verbose_name = 'Жанр и название',
+        verbose_name_plural = 'Жанры и названия'
 
 
 class Review(models.Model):
