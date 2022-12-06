@@ -50,14 +50,25 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorModerAdminOrReadOnly,)
 
-    def get_title(self):
-        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
-
     def get_queryset(self):
-        return self.get_title().reviews.all()
+        queryset = Review.objects.filter(title__id=self.kwargs.get('title_id'))
+        return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user, title=self.get_title())
+    def create(self, request, *args, **kwargs):
+        # if 'title_id' in kwargs:
+        #     request.data['title'] = kwargs['title_id']
+        # request.data['author'] = request.user
+        serializer = ReviewSerializer(data=request.data)
+        author = request.user
+        title = get_object_or_404(Title, pk=kwargs.get('title_id'))
+        if Review.objects.filter(author=author, title=title).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save(
+                author=author,
+                title=title)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetPostDelete(
