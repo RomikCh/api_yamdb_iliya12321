@@ -1,9 +1,8 @@
-import random
 import datetime
+import random
 
 from django.db.models import Avg
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import (
     Comment,
@@ -88,20 +87,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        read_only=True,
+        slug_field='username',
     )
 
     class Meta:
         fields = '__all__'
         model = Review
         read_only_fields = ('title',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title'),
-                message='Вы уже оставили отзыв!',
-            )
-        ]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -149,7 +142,10 @@ class TitleSerializer(serializers.ModelSerializer):
     def get_rating(self, obj):
         if not Review.objects.filter(title=obj.pk).exists():
             return None
-        return Review.objects.filter(title=obj.pk).aggregate(Avg('score'))
+        rating = Review.objects.filter(
+            title=obj.pk
+        ).aggregate(Avg('score'))['score__avg']
+        return round(rating)
 
     class Meta:
         model = Title
