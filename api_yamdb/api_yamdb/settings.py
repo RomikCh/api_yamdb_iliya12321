@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
     'rest_framework.authtoken',
-    'import_export'
 ]
 
 MIDDLEWARE = [
@@ -158,4 +157,3 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
