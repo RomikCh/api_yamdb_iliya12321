@@ -15,6 +15,7 @@ DICT = {
     Comment: 'comments.csv',
 }
 
+
 def csv_import(csv_data, model):
     objects = []
     for row in csv_data:
@@ -25,8 +26,10 @@ def csv_import(csv_data, model):
         objects.append(model(**row))
     model.objects.bulk_create(objects)
 
+
 class Command(BaseCommand):
     help = 'импорт из .csv'
+
     def handle(self, *args, **kwargs):
         for model in DICT:
             with open(
