@@ -1,7 +1,6 @@
 import datetime
 import random
 
-from django.db.models import Avg
 from rest_framework import serializers
 
 from reviews.models import (
@@ -137,15 +136,9 @@ class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
-
-    def get_rating(self, obj):
-        if not Review.objects.filter(title=obj.pk).exists():
-            return None
-        rating = Review.objects.filter(
-            title=obj.pk
-        ).aggregate(Avg('score'))['score__avg']
-        return round(rating)
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
 
     class Meta:
         model = Title
