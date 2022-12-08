@@ -4,6 +4,7 @@ from .models import (
     User, Review, Comment, Genre, Title, Category, GenreAndTitle
 )
 
+
 admin.site.register(User)
 admin.site.register(Review)
 admin.site.register(Comment)
