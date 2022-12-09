@@ -3,6 +3,7 @@ import random
 
 from rest_framework import serializers
 
+from api.validators import validate_username, validate_year
 from reviews.models import (
     Comment,
     User,
@@ -119,14 +120,15 @@ class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
+    # year = serializers.IntegerField(validators=[validate_year])
 
-    def validate_year(self, value):
-        year = datetime.date.today().year
-        if value > year:
-            raise serializers.ValidationError(
-                'Год издания не может быть больше текущего года'
-            )
-        return value
+    # def validate_year(self, value):
+    #     year = datetime.date.today().year
+    #     if value > year:
+    #         raise serializers.ValidationError(
+    #             'Год издания не может быть больше текущего года'
+    #         )
+    #     return value
 
     class Meta:
         model = Title
@@ -143,3 +145,6 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+        read_only_fields = (
+            'name', 'year', 'description', 'category', 'genre', 'id'
+        )
