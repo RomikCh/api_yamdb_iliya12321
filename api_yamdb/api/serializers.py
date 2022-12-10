@@ -97,20 +97,23 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ('title',)
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategoryAndGenre(serializers.ModelSerializer):
 
     class Meta:
+        fields = ('name', 'slug',)
+        lookup_field = 'slug'
+
+
+class CategorySerializer(CategoryAndGenre):
+
+    class Meta(CategoryAndGenre.Meta):
         model = Category
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class GenreSerializer(CategoryAndGenre):
 
-    class Meta:
+    class Meta(CategoryAndGenre.Meta):
         model = Genre
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
 
 
 class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
