@@ -1,8 +1,8 @@
 import random
 
-from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 class UserManager(BaseUserManager):
@@ -211,7 +211,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
-    score = models.SmallIntegerField(
+    score = models.PositiveSmallIntegerField(
         verbose_name="Оценка",
         validators=[
             MinValueValidator(
@@ -249,12 +249,15 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments')
+        Review, on_delete=models.CASCADE, related_name='comments'
+    )
     text = models.TextField("Текст", help_text="Комментарий")
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True)
+        'Дата публикации', auto_now_add=True, db_index=True
+    )
 
     def __str__(self):
         return '{} - комментарий на данный отзыв: {} Автор: {}'.format(
