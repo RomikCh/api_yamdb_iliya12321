@@ -12,6 +12,7 @@ from api.views import (
     get_token
 )
 
+
 router_v1 = DefaultRouter()
 
 router_v1.register('titles', TitleViewSet, basename='titles')

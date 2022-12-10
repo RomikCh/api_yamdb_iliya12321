@@ -1,33 +1,28 @@
-from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import filters, mixins, viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
+from reviews.models import Category, Genre, Review, Title, User
 from api.filters import TitleFilter
 from api.permissions import (
-    IsAuthorModerAdminOrReadOnly,
-    IsAdmin,
-    IsAdminOrReadOnly,
+    IsAdmin, IsAdminOrReadOnly,
+    IsAuthorModerAdminOrReadOnly
 )
 from api.serializers import (
-    CommentSerializer,
-    ReviewSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-    UserSerializer,
-    UserMeSerializer,
-    SignUpSerializer,
-    GetTokenSerializer,
-    TitleCreateAndUpdateSerializer
+    CategorySerializer, CommentSerializer,
+    GenreSerializer, GetTokenSerializer,
+    ReviewSerializer, SignUpSerializer,
+    TitleCreateAndUpdateSerializer, TitleSerializer,
+    UserMeSerializer, UserSerializer
 )
-from reviews.models import Review, Title, Category, Genre, User
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -48,22 +43,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorModerAdminOrReadOnly,)
 
-    def get_queryset(self):
-        queryset = Review.objects.filter(title__id=self.kwargs.get('title_id'))
-        return queryset
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
 
-    def create(self, request, *args, **kwargs):
-        serializer = ReviewSerializer(data=request.data)
-        author = request.user
-        title = get_object_or_404(Title, pk=kwargs.get('title_id'))
-        if Review.objects.filter(author=author, title=title).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        if serializer.is_valid():
-            serializer.save(
-                author=author,
-                title=title)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, title=self.get_title())
 
 
 class GetPostDelete(

@@ -1,19 +1,14 @@
 import datetime
 
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from reviews.models import (
-    Comment,
-    User,
-    Review,
-    Category,
-    Genre,
-    Title,
-)
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = (
@@ -28,6 +23,7 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = (
@@ -95,6 +91,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
+        allow_null=True,
         read_only=True,
         slug_field='username',
     )
@@ -104,21 +101,38 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         read_only_fields = ('title',)
 
+    def validate(self, data):
+        title_id = self.context['view'].kwargs['title_id']
+        request = self.context['request']
+        author = request.user
+        title = get_object_or_404(Title, id=title_id)
+        if (
+            title.reviews.filter(author=author).exists() 
+            and request.method != 'PATCH'
+        ):
+            raise serializers.ValidationError(
+                'Можно оставлять только один отзыв!'
+            )
+        return data
 
-class CategorySerializer(serializers.ModelSerializer):
+
+class CategoryGenre(serializers.ModelSerializer):
 
     class Meta:
+        fields = ('name', 'slug',)
+        lookup_field = 'slug'
+
+
+class CategorySerializer(Category_Genre):
+
+    class Meta(Category_Genre.Meta):
         model = Category
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class GenreSerializer(Category_Genre):
 
-    class Meta:
+    class Meta(Category_Genre.Meta):
         model = Genre
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
 
 
 class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
