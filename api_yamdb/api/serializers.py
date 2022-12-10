@@ -1,4 +1,3 @@
-import datetime
 import random
 
 from rest_framework import serializers
@@ -123,15 +122,7 @@ class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-    # year = serializers.IntegerField(validators=[validate_year])
-
-    # def validate_year(self, value):
-    #     year = datetime.date.today().year
-    #     if value > year:
-    #         raise serializers.ValidationError(
-    #             'Год издания не может быть больше текущего года'
-    #         )
-    #     return value
+    year = serializers.IntegerField(validators=[validate_year])
 
     class Meta:
         model = Title
