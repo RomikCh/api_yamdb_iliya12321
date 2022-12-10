@@ -1,76 +1,20 @@
-import random
-
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 
 
-class UserManager(BaseUserManager):
-    def create_superuser(
-        self,
-        username,
-        email,
-        password,
-        **other_fields
-    ):
-        other_fields.setdefault('is_staff', True)
-        other_fields.setdefault('is_superuser', True)
-
-        if other_fields.get('is_staff') is not True:
-            raise ValueError('Для суперпользователя is_staff '
-                             'должен быть равен True')
-
-        if other_fields.get('is_superuser') is not True:
-            raise ValueError('Для суперпользователя is_superuser '
-                             'должен быть равен True')
-
-        if not email:
-            raise ValueError('Введите email!')
-
-        if not username:
-            raise ValueError('Введите username!')
-
-        email = self.normalize_email(email)
-        user = self.model(
-            username=username,
-            email=email,
-            **other_fields
-        )
-        user.set_password(password)
-        user.role = 'admin'
-        user.save()
-        return user
-
-    def create_user(
-        self,
-        username,
-        email,
-        **other_fields
-    ):
-        if not email:
-            raise ValueError('Введите email!')
-
-        if not username:
-            raise ValueError('Введите username!')
-
-        email = self.normalize_email(email)
-        user = self.model(
-            username=username,
-            email=email,
-            **other_fields
-        )
-        password = random.randint(10000, 99999)**2
-        user.set_password(password)
-        user.save()
-        return user
+USER = 'user'
+MODERATOR = 'moderator'
+ADMIN = 'admin'
 
 
 class User(AbstractUser):
     ROLES = (
-        ('user', 'Пользователь'),
-        ('moderator', 'Модератор'),
-        ('admin', 'Администратор')
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор')
     )
+
     username = models.CharField(
         max_length=150,
         unique=True,
@@ -97,18 +41,22 @@ class User(AbstractUser):
         null=True
     )
     role = models.CharField(
+        max_length=255,
         verbose_name='Роль',
-        max_length=25,
         choices=ROLES,
         default='user'
     )
-    confirmation_code = models.SlugField(
-        max_length=5,
-        null=True,
-        blank=True
-    )
 
-    objects = UserManager()
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
+
+    @property
+    def is_admin(self):
+        return (
+            self.role == ADMIN
+            or self.is_superuser
+        )
 
     class Meta:
         ordering = ('username',)
