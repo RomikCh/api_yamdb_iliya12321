@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from api.validators import validate_username, validate_year
+
 
 USER = 'user'
 MODERATOR = 'moderator'
@@ -64,53 +66,47 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
 
-class Category(models.Model):
+class CategoryAndGenre(models.Model):
     name = models.CharField(
-        verbose_name='Категория',
         max_length=256,
+        verbose_name='Имя'
     )
     slug = models.SlugField(
         unique=True,
-        verbose_name='Идентификатор категории',
-        max_length=50
+        max_length=50,
+        verbose_name='Идентификатор'
     )
 
     def __str__(self):
         return self.name
 
     class Meta:
+        abstract = True
         ordering = ('name',)
+
+
+class Category(CategoryAndGenre):
+
+    class Meta(CategoryAndGenre.Meta):
         verbose_name = 'Категория',
         verbose_name_plural = 'Категории'
 
 
-class Genre(models.Model):
-    name = models.CharField(
-        verbose_name='жанр',
-        max_length=256,
-    )
-    slug = models.SlugField(
-        unique=True,
-        verbose_name='Идентификатор жанра',
-        max_length=50,
-    )
+class Genre(CategoryAndGenre):
 
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ('name',)
+    class Meta(CategoryAndGenre.Meta):
         verbose_name = 'Жанры',
         verbose_name_plural = 'Жанры'
 
 
 class Title(models.Model):
     name = models.CharField(
-        verbose_name='Название',
+        verbose_name='Название произведения',
         max_length=256,
     )
     year = models.IntegerField(
-        verbose_name='год издания'
+        verbose_name='Год издания',
+        validators=[validate_year]
     )
     description = models.TextField(
         'описание',
@@ -119,14 +115,14 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        verbose_name='Категория',
+        verbose_name='Название категории',
         on_delete=models.SET_NULL,
         null=True,
         related_name='titles'
     )
     genre = models.ManyToManyField(
         Genre,
-        verbose_name='Жанр',
+        verbose_name='Название жанра',
         related_name='titles',
         through='GenreAndTitle',
     )
@@ -136,8 +132,8 @@ class Title(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Название',
-        verbose_name_plural = 'Названия'
+        verbose_name = 'Название произведения',
+        verbose_name_plural = 'Названия произведений'
 
 
 class GenreAndTitle(models.Model):

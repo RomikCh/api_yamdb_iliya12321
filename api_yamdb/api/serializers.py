@@ -1,9 +1,8 @@
-import datetime
-
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from api.validators import validate_username, validate_year
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -123,15 +122,15 @@ class CategoryGenre(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class CategorySerializer(Category_Genre):
+class CategorySerializer(CategoryGenre):
 
-    class Meta(Category_Genre.Meta):
+    class Meta(CategoryGenre.Meta):
         model = Category
 
 
-class GenreSerializer(Category_Genre):
+class GenreSerializer(CategoryGenre):
 
-    class Meta(Category_Genre.Meta):
+    class Meta(CategoryGenre.Meta):
         model = Genre
 
 
@@ -142,14 +141,7 @@ class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-
-    def validate_year(self, value):
-        year = datetime.date.today().year
-        if value > year:
-            raise serializers.ValidationError(
-                'Год издания не может быть больше текущего года'
-            )
-        return value
+    year = serializers.IntegerField(validators=[validate_year])
 
     class Meta:
         model = Title
@@ -166,3 +158,6 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+        read_only_fields = (
+            'name', 'year', 'description', 'category', 'genre', 'id'
+        )
