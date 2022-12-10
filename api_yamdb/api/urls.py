@@ -8,10 +8,10 @@ from api.views import (
     GenreViewSet,
     ReviewViewSet,
     UserViewSet,
-    APIUserMe,
-    APISignUp,
-    APIGetToken
+    signup_user,
+    get_token
 )
+
 
 router_v1 = DefaultRouter()
 
@@ -33,9 +33,12 @@ router_v1.register(
     basename='users'
 )
 
+auth_patterns = [
+    path('signup/', signup_user),
+    path('token/', get_token),
+]
+
 urlpatterns = [
-    path('v1/users/me/', APIUserMe.as_view()),
-    path('v1/auth/signup/', APISignUp.as_view()),
-    path('v1/auth/token/', APIGetToken.as_view()),
+    path('v1/auth/', include(auth_patterns)),
     path('v1/', include(router_v1.urls)),
 ]
