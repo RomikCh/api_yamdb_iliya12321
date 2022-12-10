@@ -173,7 +173,7 @@ def signup_user(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_token(request):
-    serializer = GetTokenSerializer
+    serializer = GetTokenSerializer(data=request.data)
     if serializer.is_valid():
         confirmation_code = serializer.validated_data['confirmation_code']
         username = serializer.validated_data['username']

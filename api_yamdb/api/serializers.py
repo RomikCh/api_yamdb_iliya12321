@@ -1,6 +1,7 @@
 import datetime
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import (
     Comment,
@@ -41,7 +42,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class GetTokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=['кастомная хрень']
+    )
     confirmation_code = serializers.CharField(required=True)
 
     class Meta:
@@ -53,8 +58,20 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(max_length=150, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
 
     class Meta:
         model = User
