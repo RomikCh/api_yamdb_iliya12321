@@ -1,5 +1,4 @@
 import datetime
-import random
 
 from rest_framework import serializers
 
@@ -42,6 +41,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class GetTokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150, required=True)
+    confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -52,24 +53,43 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(
-        default=random.randint(10000, 99999),
-    )
+    email = serializers.EmailField(max_length=150, required=True)
+    username = serializers.CharField(max_length=150, required=True)
 
     class Meta:
         model = User
         fields = (
             'username',
             'email',
-            'confirmation_code'
         )
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Вы не можете использовать me как username!'
-            )
-        return value
+    def validate(self, data):
+        username = data['username']
+        email = data['email']
+
+        if not User.objects.filter(
+            username=username,
+            email=email
+        ).exists():
+            if User.objects.filter(
+                username=username,
+            ).exists():
+                raise serializers.ValidationError(
+                    'Пользователь с таким никнеймом уже существует!'
+                )
+
+            if User.objects.filter(
+                email=email
+            ).exists():
+                raise serializers.ValidationError(
+                    'Пользователь с таким адресом уже существует!'
+                )
+
+            if username == 'me':
+                raise serializers.ValidationError(
+                    'Использовать me в качестве ника запрещено!'
+                )
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
