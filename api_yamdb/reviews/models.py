@@ -1,80 +1,27 @@
-import random
-
-from django.db import models
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
+
+from api.validators import validate_year, validate_username
 
 
-class UserManager(BaseUserManager):
-    def create_superuser(
-        self,
-        username,
-        email,
-        password,
-        **other_fields
-    ):
-        other_fields.setdefault('is_staff', True)
-        other_fields.setdefault('is_superuser', True)
-
-        if other_fields.get('is_staff') is not True:
-            raise ValueError('Для суперпользователя is_staff '
-                             'должен быть равен True')
-
-        if other_fields.get('is_superuser') is not True:
-            raise ValueError('Для суперпользователя is_superuser '
-                             'должен быть равен True')
-
-        if not email:
-            raise ValueError('Введите email!')
-
-        if not username:
-            raise ValueError('Введите username!')
-
-        email = self.normalize_email(email)
-        user = self.model(
-            username=username,
-            email=email,
-            **other_fields
-        )
-        user.set_password(password)
-        user.role = 'admin'
-        user.save()
-        return user
-
-    def create_user(
-        self,
-        username,
-        email,
-        **other_fields
-    ):
-        if not email:
-            raise ValueError('Введите email!')
-
-        if not username:
-            raise ValueError('Введите username!')
-
-        email = self.normalize_email(email)
-        user = self.model(
-            username=username,
-            email=email,
-            **other_fields
-        )
-        password = random.randint(10000, 99999)**2
-        user.set_password(password)
-        user.save()
-        return user
+USER = 'user'
+MODERATOR = 'moderator'
+ADMIN = 'admin'
 
 
 class User(AbstractUser):
     ROLES = (
-        ('user', 'Пользователь'),
-        ('moderator', 'Модератор'),
-        ('admin', 'Администратор')
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор')
     )
+
     username = models.CharField(
         max_length=150,
         unique=True,
-        blank=False
+        blank=False,
+        validators=[validate_username]
     )
     email = models.EmailField(
         max_length=254,
@@ -97,18 +44,22 @@ class User(AbstractUser):
         null=True
     )
     role = models.CharField(
+        max_length=255,
         verbose_name='Роль',
-        max_length=25,
         choices=ROLES,
         default='user'
     )
-    confirmation_code = models.SlugField(
-        max_length=5,
-        null=True,
-        blank=True
-    )
 
-    objects = UserManager()
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
+
+    @property
+    def is_admin(self):
+        return (
+            self.role == ADMIN
+            or self.is_superuser
+        )
 
     class Meta:
         ordering = ('username',)
@@ -116,53 +67,47 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
 
-class Category(models.Model):
+class CategoryAndGenre(models.Model):
     name = models.CharField(
-        verbose_name='Категория',
         max_length=256,
+        verbose_name='Имя'
     )
     slug = models.SlugField(
         unique=True,
-        verbose_name='Идентификатор категории',
-        max_length=50
+        max_length=50,
+        verbose_name='Идентификатор'
     )
 
     def __str__(self):
         return self.name
 
     class Meta:
+        abstract = True
         ordering = ('name',)
+
+
+class Category(CategoryAndGenre):
+
+    class Meta(CategoryAndGenre.Meta):
         verbose_name = 'Категория',
         verbose_name_plural = 'Категории'
 
 
-class Genre(models.Model):
-    name = models.CharField(
-        verbose_name='жанр',
-        max_length=256,
-    )
-    slug = models.SlugField(
-        unique=True,
-        verbose_name='Идентификатор жанра',
-        max_length=50,
-    )
+class Genre(CategoryAndGenre):
 
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ('name',)
+    class Meta(CategoryAndGenre.Meta):
         verbose_name = 'Жанры',
         verbose_name_plural = 'Жанры'
 
 
 class Title(models.Model):
     name = models.CharField(
-        verbose_name='Название',
+        verbose_name='Название произведения',
         max_length=256,
     )
     year = models.IntegerField(
-        verbose_name='год издания'
+        verbose_name='Год издания',
+        validators=[validate_year]
     )
     description = models.TextField(
         'описание',
@@ -171,14 +116,14 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        verbose_name='Категория',
+        verbose_name='Название категории',
         on_delete=models.SET_NULL,
         null=True,
         related_name='titles'
     )
     genre = models.ManyToManyField(
         Genre,
-        verbose_name='Жанр',
+        verbose_name='Название жанра',
         related_name='titles',
         through='GenreAndTitle',
     )
@@ -188,8 +133,8 @@ class Title(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Название',
-        verbose_name_plural = 'Названия'
+        verbose_name = 'Название произведения',
+        verbose_name_plural = 'Названия произведений'
 
 
 class GenreAndTitle(models.Model):
@@ -211,7 +156,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
-    score = models.SmallIntegerField(
+    score = models.PositiveSmallIntegerField(
         verbose_name="Оценка",
         validators=[
             MinValueValidator(
@@ -249,12 +194,15 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments')
+        Review, on_delete=models.CASCADE, related_name='comments'
+    )
     text = models.TextField("Текст", help_text="Комментарий")
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True)
+        'Дата публикации', auto_now_add=True, db_index=True
+    )
 
     def __str__(self):
         return '{} - комментарий на данный отзыв: {} Автор: {}'.format(

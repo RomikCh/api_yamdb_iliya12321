@@ -1,19 +1,13 @@
-import datetime
-import random
-
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
-from reviews.models import (
-    Comment,
-    User,
-    Review,
-    Category,
-    Genre,
-    Title,
-)
+from api.validators import validate_year, validate_username
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = (
@@ -28,6 +22,7 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = (
@@ -42,6 +37,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class GetTokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[validate_username]
+    )
+    confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -52,8 +53,20 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(
-        default=random.randint(10000, 99999),
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            validate_username
+        ]
     )
 
     class Meta:
@@ -61,15 +74,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = (
             'username',
             'email',
-            'confirmation_code'
         )
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Вы не можете использовать me как username!'
-            )
-        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -86,6 +91,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
+        allow_null=True,
         read_only=True,
         slug_field='username',
     )
@@ -95,21 +101,38 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         read_only_fields = ('title',)
 
+    def validate(self, data):
+        title_id = self.context['view'].kwargs['title_id']
+        request = self.context['request']
+        author = request.user
+        title = get_object_or_404(Title, id=title_id)
+        if (
+            title.reviews.filter(author=author).exists()
+            and request.method != 'PATCH'
+        ):
+            raise serializers.ValidationError(
+                'Можно оставлять только один отзыв!'
+            )
+        return data
 
-class CategorySerializer(serializers.ModelSerializer):
+
+class CategoryGenre(serializers.ModelSerializer):
 
     class Meta:
+        fields = ('name', 'slug',)
+        lookup_field = 'slug'
+
+
+class CategorySerializer(CategoryGenre):
+
+    class Meta(CategoryGenre.Meta):
         model = Category
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class GenreSerializer(CategoryGenre):
 
-    class Meta:
+    class Meta(CategoryGenre.Meta):
         model = Genre
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
 
 
 class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
@@ -119,14 +142,7 @@ class TitleCreateAndUpdateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-
-    def validate_year(self, value):
-        year = datetime.date.today().year
-        if value > year:
-            raise serializers.ValidationError(
-                'Год издания не может быть больше текущего года'
-            )
-        return value
+    year = serializers.IntegerField(validators=[validate_year])
 
     class Meta:
         model = Title
@@ -143,3 +159,6 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+        read_only_fields = (
+            'name', 'year', 'description', 'category', 'genre', 'id'
+        )
