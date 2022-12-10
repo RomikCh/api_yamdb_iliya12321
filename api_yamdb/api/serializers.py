@@ -116,7 +116,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
 
-class Category_Genre(serializers.ModelSerializer):
+class CategoryGenre(serializers.ModelSerializer):
 
     class Meta:
         fields = ('name', 'slug',)
