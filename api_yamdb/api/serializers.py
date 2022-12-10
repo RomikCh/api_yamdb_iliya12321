@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from api.validators import validate_username, validate_year
+from api.validators import validate_year, validate_username
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -40,7 +40,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
         required=True,
-        # validators=['кастомная хрень']
+        validators=[validate_username]
     )
     confirmation_code = serializers.CharField(required=True)
 
@@ -64,7 +64,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         max_length=150,
         required=True,
         validators=[
-            UniqueValidator(queryset=User.objects.all())
+            UniqueValidator(queryset=User.objects.all()),
+            validate_username
         ]
     )
 
@@ -106,7 +107,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         author = request.user
         title = get_object_or_404(Title, id=title_id)
         if (
-            title.reviews.filter(author=author).exists() 
+            title.reviews.filter(author=author).exists()
             and request.method != 'PATCH'
         ):
             raise serializers.ValidationError(

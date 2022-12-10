@@ -10,7 +10,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Genre, Review, Title, User
 from api.filters import TitleFilter
 from api.permissions import (
     IsAdmin, IsAdminOrReadOnly,
@@ -23,6 +22,7 @@ from api.serializers import (
     TitleCreateAndUpdateSerializer, TitleSerializer,
     UserMeSerializer, UserSerializer
 )
+from reviews.models import Category, Genre, Review, Title, User
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -97,9 +97,11 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin,)
     lookup_field = 'username'
 
-    @action(methods=['patch', 'get'], detail=False,
-            permission_classes=[IsAuthenticated],
-            url_path='me', url_name='me')
+    @action(
+        methods=['patch', 'get'], detail=False,
+        permission_classes=[IsAuthenticated],
+        url_path='me', url_name='me'
+    )
     def me(self, request, *args, **kwargs):
         serializer = UserSerializer(request.user)
 
