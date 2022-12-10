@@ -45,7 +45,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
         required=True,
-        validators=['кастомная хрень']
+        # validators=['кастомная хрень']
     )
     confirmation_code = serializers.CharField(required=True)
 
@@ -79,34 +79,6 @@ class SignUpSerializer(serializers.ModelSerializer):
             'username',
             'email',
         )
-
-    def validate(self, data):
-        username = data['username']
-        email = data['email']
-
-        if not User.objects.filter(
-            username=username,
-            email=email
-        ).exists():
-            if User.objects.filter(
-                username=username,
-            ).exists():
-                raise serializers.ValidationError(
-                    'Пользователь с таким никнеймом уже существует!'
-                )
-
-            if User.objects.filter(
-                email=email
-            ).exists():
-                raise serializers.ValidationError(
-                    'Пользователь с таким адресом уже существует!'
-                )
-
-            if username == 'me':
-                raise serializers.ValidationError(
-                    'Использовать me в качестве ника запрещено!'
-                )
-        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
