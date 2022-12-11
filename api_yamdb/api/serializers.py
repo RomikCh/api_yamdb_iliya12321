@@ -3,10 +3,19 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from api.validators import validate_year, validate_username
+from api_yamdb.settings import (
+    EMAIL_MAX_LENGTH,
+    USER_NAME_MAX_LENGTH
+)
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=USER_NAME_MAX_LENGTH,
+        required=True,
+        validators=[validate_username]
+    )
 
     class Meta:
         model = User
@@ -22,6 +31,11 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=USER_NAME_MAX_LENGTH,
+        required=True,
+        validators=[validate_username]
+    )
 
     class Meta:
         model = User
@@ -38,7 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class GetTokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=USER_NAME_MAX_LENGTH,
         required=True,
         validators=[validate_username]
     )
@@ -54,14 +68,14 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
-        max_length=254,
+        max_length=EMAIL_MAX_LENGTH,
         required=True,
         validators=[
             UniqueValidator(queryset=User.objects.all())
         ]
     )
     username = serializers.CharField(
-        max_length=150,
+        max_length=EMAIL_MAX_LENGTH,
         required=True,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
@@ -75,6 +89,14 @@ class SignUpSerializer(serializers.ModelSerializer):
             'username',
             'email',
         )
+
+    def validate(self, data):
+        email = data.get('email')
+        username = data.get('username')
+        user = User.objects.filter(email=email, username=username).exists()
+        if user:
+            return data
+            
 
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -83,7 +83,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = TitleFilter
-    ordering_fields = ('rating',)
+    ordering_fields = ('rating', 'name')
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
