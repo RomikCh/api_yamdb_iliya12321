@@ -10,24 +10,24 @@ from api_yamdb.settings import (
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-class UserMeSerializer(serializers.ModelSerializer):
-    # username = serializers.CharField(
-    #     max_length=USER_NAME_MAX_LENGTH,
-    #     required=True,
-    #     validators=[validate_username]
-    # )   временный комент, не было в ошибках
+# class UserMeSerializer(serializers.ModelSerializer):
+#     username = serializers.CharField(
+#         max_length=USER_NAME_MAX_LENGTH,
+#         required=True,
+#         validators=[validate_username]
+#     )  
 
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        )
-        read_only_fields = ('role',)
+#     class Meta:
+#         model = User
+#         fields = (
+#             'username',
+#             'email',
+#             'first_name',
+#             'last_name',
+#             'bio',
+#             'role'
+#         )
+#         read_only_fields = ('role',)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -52,11 +52,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
         lookup_field = 'username'
 
-    # def validate_last_name(self, value):
-    #     user = get_object_or_404(User, username=value)
-    #     if len(user.last_name) > USER_NAME_MAX_LENGTH:
-    #         raise ValueError('Недопустимая длина')
-    #     return value
 
 class GetTokenSerializer(serializers.Serializer):
     username = serializers.CharField(
@@ -69,19 +64,11 @@ class GetTokenSerializer(serializers.Serializer):
 
 class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField(
-        max_length=EMAIL_MAX_LENGTH,
-        #required=True,
-        # validators=[
-        #     UniqueValidator(queryset=User.objects.all())
-        # ]
+        max_length=EMAIL_MAX_LENGTH
     )
     username = serializers.CharField(
         max_length=EMAIL_MAX_LENGTH,
-        #required=True,
-        validators=[
-            #UniqueValidator(queryset=User.objects.all()),
-            validate_username
-        ]
+        validators=[validate_username]
     )
 
 

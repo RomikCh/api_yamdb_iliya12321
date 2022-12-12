@@ -21,7 +21,7 @@ from api.serializers import (
     GenreSerializer, GetTokenSerializer,
     ReviewSerializer, SignUpSerializer,
     TitleCreateAndUpdateSerializer, TitleSerializer,
-    UserMeSerializer, UserSerializer
+    UserSerializer
 )
 from reviews.models import Category, Genre, Review, Title, User
 
@@ -92,33 +92,30 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class UserViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, ):
+class UserViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
-    lookup_field = 'username'
+    serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('username',)
+    lookup_field = 'username'
 
     @action(
-        methods=['patch', 'get'], detail=False,
-        permission_classes=[IsAuthenticated],
-        url_path='me', url_name='me'
+        detail=False,
+        methods=('GET', 'PATCH'),
+        permission_classes=(IsAuthenticated,),
     )
-    def me(self, request, *args, **kwargs):
-        serializer = UserSerializer(request.user)
-
+    def me(self, request):
         if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data)
-        if request.user.is_admin:
-            serializer = UserSerializer(
-                request.user, data=request.data, partial=True
-            )
-        else:
-            serializer = UserMeSerializer(
-                request.user, data=request.data, partial=True
-            )
-        serializer.is_valid()
+
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        if serializer.validated_data.get('role'):
+            serializer.validated_data['role'] = request.user.role
         serializer.save()
         return Response(serializer.data)
 

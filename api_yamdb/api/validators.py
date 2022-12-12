@@ -10,6 +10,12 @@ def validate_year(value):
         raise ValidationError('Год издания не может быть больше текущего года')
 
 
+# def validate_username(value):
+#     if re.search(r'^[\w.@+-]+$', value) is None:
+#         raise ValidationError(('Username has unallowed symbols'),)
+#     if value == 'me':
+#         raise ValidationError(('You cant use me as username'),)
+
 def validate_username(value):
     if value.lower() == 'me':
         raise ValidationError('"me" - Недопустимое имя пользователя.')
