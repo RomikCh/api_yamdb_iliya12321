@@ -10,26 +10,6 @@ from api_yamdb.settings import (
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-# class UserMeSerializer(serializers.ModelSerializer):
-#     username = serializers.CharField(
-#         max_length=USER_NAME_MAX_LENGTH,
-#         required=True,
-#         validators=[validate_username]
-#     )  
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'username',
-#             'email',
-#             'first_name',
-#             'last_name',
-#             'bio',
-#             'role'
-#         )
-#         read_only_fields = ('role',)
-
-
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=USER_NAME_MAX_LENGTH,
