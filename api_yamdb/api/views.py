@@ -92,7 +92,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, ):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
@@ -121,6 +121,15 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid()
         serializer.save()
         return Response(serializer.data)
+
+    def patch(self, request, **kwargs):
+        saved_user = User.objects.get(username=kwargs['username'])
+        data = request.data
+        serializer = UserSerializer(instance=saved_user, data=data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            saved_user = serializer.save()
+        return Response({
+            "success": f"User with username '{saved_user}' updated successfully"})
 
 
 @api_view(['POST'])
