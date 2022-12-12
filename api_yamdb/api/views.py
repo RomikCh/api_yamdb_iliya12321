@@ -1,10 +1,11 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import filters, mixins, viewsets, status
+from rest_framework import filters, mixins, viewsets, status, serializers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -96,6 +97,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
     lookup_field = 'username'
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('username',)
 
     @action(
         methods=['patch', 'get'], detail=False,
@@ -128,11 +131,14 @@ def signup_user(request):
 
     email = serializer.validated_data['email']
     username = serializer.validated_data['username']
+    try:
+        user, _ = User.objects.get_or_create(
+            email=email,
+            username=username
+        )
+    except IntegrityError:
+        raise serializers.ValidationError('Такой пользователь уже существует')
 
-    user, created = User.objects.get_or_create(
-        email=email,
-        username=username
-    )
     confirmation_code = default_token_generator.make_token(user)
 
     message = (
