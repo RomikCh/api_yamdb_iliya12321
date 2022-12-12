@@ -93,11 +93,9 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(
+    GetPostDelete,
     viewsets.GenericViewSet,
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin
 ):
     queryset = User.objects.all()
     permission_classes = (IsAdmin,)
