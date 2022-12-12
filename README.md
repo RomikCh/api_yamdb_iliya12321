@@ -101,6 +101,6 @@ ___
 python manage.py importcsv
 ```
 ___
-***Вид на количество проделанной работы***
+***Вид на объем проделанной работы***
 
 ![красивая фотография](https://million-wallpapers.ru/wallpapers/6/7/492940876511675/zhivopisnyj-pejzazh-krasivaya-priroda.jpg)

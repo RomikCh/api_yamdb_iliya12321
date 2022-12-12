@@ -1,10 +1,11 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import filters, mixins, viewsets, status
+from rest_framework import filters, mixins, viewsets, status, serializers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -20,7 +21,7 @@ from api.serializers import (
     GenreSerializer, GetTokenSerializer,
     ReviewSerializer, SignUpSerializer,
     TitleCreateAndUpdateSerializer, TitleSerializer,
-    UserMeSerializer, UserSerializer
+    UserSerializer
 )
 from reviews.models import Category, Genre, Review, Title, User
 
@@ -91,33 +92,47 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(
+    GetPostDelete,
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
+    serializer_class = UserSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('username',)
     lookup_field = 'username'
 
     @action(
-        methods=['patch', 'get'], detail=False,
-        permission_classes=[IsAuthenticated],
-        url_path='me', url_name='me'
+        detail=False,
+        methods=('GET', 'PATCH'),
+        permission_classes=(IsAuthenticated,),
     )
-    def me(self, request, *args, **kwargs):
-        serializer = UserSerializer(request.user)
-
+    def me(self, request):
         if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data)
-        if request.user.is_admin:
-            serializer = UserSerializer(
-                request.user, data=request.data, partial=True
-            )
-        else:
-            serializer = UserMeSerializer(
-                request.user, data=request.data, partial=True
-            )
-        serializer.is_valid()
+
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        if serializer.validated_data.get('role'):
+            serializer.validated_data['role'] = request.user.role
         serializer.save()
         return Response(serializer.data)
+
+    def patch(self, request, **kwargs):
+        saved_user = User.objects.get(username=kwargs['username'])
+        data = request.data
+        serializer = UserSerializer(
+            instance=saved_user, data=data, partial=True
+        )
+        if serializer.is_valid(raise_exception=True):
+            saved_user = serializer.save()
+        return Response({
+            'успешно': f'"{saved_user}" обновлен'})
 
 
 @api_view(['POST'])
@@ -128,11 +143,14 @@ def signup_user(request):
 
     email = serializer.validated_data['email']
     username = serializer.validated_data['username']
+    try:
+        user, _ = User.objects.get_or_create(
+            email=email,
+            username=username
+        )
+    except IntegrityError:
+        raise serializers.ValidationError('Такой пользователь уже существует')
 
-    user, created = User.objects.get_or_create(
-        email=email,
-        username=username
-    )
     confirmation_code = default_token_generator.make_token(user)
 
     message = (

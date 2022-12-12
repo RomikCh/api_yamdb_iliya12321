@@ -10,31 +10,14 @@ from api_yamdb.settings import (
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-class UserMeSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        max_length=USER_NAME_MAX_LENGTH,
-        required=True,
-        validators=[validate_username]
-    )
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        )
-        read_only_fields = ('role',)
-
-
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=USER_NAME_MAX_LENGTH,
         required=True,
-        validators=[validate_username]
+        validators=[
+            validate_username,
+            UniqueValidator(queryset=User.objects.all()),
+        ]
     )
 
     class Meta:
@@ -50,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field = 'username'
 
 
-class GetTokenSerializer(serializers.ModelSerializer):
+class GetTokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=USER_NAME_MAX_LENGTH,
         required=True,
@@ -58,45 +41,15 @@ class GetTokenSerializer(serializers.ModelSerializer):
     )
     confirmation_code = serializers.CharField(required=True)
 
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'confirmation_code'
-        )
 
-
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField(
-        max_length=EMAIL_MAX_LENGTH,
-        required=True,
-        validators=[
-            UniqueValidator(queryset=User.objects.all())
-        ]
+        max_length=EMAIL_MAX_LENGTH
     )
     username = serializers.CharField(
         max_length=EMAIL_MAX_LENGTH,
-        required=True,
-        validators=[
-            UniqueValidator(queryset=User.objects.all()),
-            validate_username
-        ]
+        validators=[validate_username]
     )
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-        )
-
-    def validate(self, data):
-        email = data.get('email')
-        username = data.get('username')
-        user = User.objects.filter(email=email, username=username).exists()
-        if user:
-            return data
-            
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -113,7 +66,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        allow_null=True,
+        default=serializers.CurrentUserDefault(),
         read_only=True,
         slug_field='username',
     )
@@ -180,7 +133,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
-        read_only_fields = (
-            'name', 'year', 'description', 'category', 'genre', 'id'
+        fields = (
+            'name', 'year', 'description', 'category', 'genre', 'id', 'rating'
         )
+        read_only_fields = fields
