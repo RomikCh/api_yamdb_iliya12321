@@ -2,26 +2,26 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from api.validators import validate_year, validate_username
 from api_yamdb.settings import (
     NAME_MAX_LENGTH,
     SLUG_MAX_LENGTH,
     EMAIL_MAX_LENGTH,
     USER_NAME_MAX_LENGTH
 )
+from reviews.validators import validate_year, validate_username
 
 
 USER = 'user'
 MODERATOR = 'moderator'
 ADMIN = 'admin'
 
-ROLES = (
+ROLES = [
     (USER, 'Пользователь'),
     (MODERATOR, 'Модератор'),
     (ADMIN, 'Администратор')
-)
+]
 
-ROLE_MAX_LENGTH = max(len(i[0]) for i in ROLES)
+ROLE_MAX_LENGTH = max(len(role) for role, _ in ROLES)
 
 
 class User(AbstractUser):

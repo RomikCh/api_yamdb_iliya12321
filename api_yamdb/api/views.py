@@ -130,8 +130,9 @@ class UserViewSet(
         )
         if serializer.is_valid(raise_exception=True):
             saved_user = serializer.save()
-        return Response({
-            'успешно': f'"{saved_user}" обновлен'})
+        return Response(
+            {'успешно': f'"{saved_user}" обновлен'}
+        )
 
 
 @api_view(['POST'])
