@@ -2,12 +2,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from api.validators import validate_year, validate_username
 from api_yamdb.settings import (
     EMAIL_MAX_LENGTH,
     USER_NAME_MAX_LENGTH
 )
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.validators import validate_year, validate_username
 
 
 class UserSerializer(serializers.ModelSerializer):
