@@ -92,14 +92,12 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class UserViewSet(
-    GetPostDelete,
-    viewsets.GenericViewSet,
-    mixins.RetrieveModelMixin,
-):
+class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
     queryset = User.objects.all()
     permission_classes = (IsAdmin,)
     serializer_class = UserSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('username',)
     lookup_field = 'username'
 
@@ -121,18 +119,6 @@ class UserViewSet(
             serializer.validated_data['role'] = request.user.role
         serializer.save()
         return Response(serializer.data)
-
-    def patch(self, request, **kwargs):
-        saved_user = User.objects.get(username=kwargs['username'])
-        data = request.data
-        serializer = UserSerializer(
-            instance=saved_user, data=data, partial=True
-        )
-        if serializer.is_valid(raise_exception=True):
-            saved_user = serializer.save()
-        return Response(
-            {'успешно': f'"{saved_user}" обновлен'}
-        )
 
 
 @api_view(['POST'])
