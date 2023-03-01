@@ -12,12 +12,11 @@
 
 ___ 
 
-### *Технологии*
-- Python 3.7
-- Django 2.2.19
-- DjangoRestFramework 3.12.4
-- SQLite
-- Pytest
+### **Стек**
+![python version](https://img.shields.io/badge/Python-3.7-green)
+![django version](https://img.shields.io/badge/Django-2.2-green)
+![pytest version](https://img.shields.io/badge/pytest-6.2-green)
+![requests version](https://img.shields.io/badge/requests-2.26-green)
 
 ___
 
