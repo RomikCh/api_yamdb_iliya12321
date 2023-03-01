@@ -1,4 +1,4 @@
-# **YaMDb**
+# Групповой проект студентов Яндекс.Практикум по курсу "API: интерфейс взаимодействия программ"
 
 ### ![Я](https://yastatic.net/q/logoaas/v2/Яндекс.svg?circle=black&color=000&first=white)![Практикум](https://yastatic.net/q/logoaas/v2/Практикум.svg?color=000)
 
