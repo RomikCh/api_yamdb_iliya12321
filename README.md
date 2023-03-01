@@ -64,7 +64,7 @@ git clone <HTTPS or SSH>
 ```
 + *Переходим в репозиторий*
 ```
-cd api_yamdb
+cd api_yamdb_
 ```
 + *Создаём виртуальное окружение*
 ```
