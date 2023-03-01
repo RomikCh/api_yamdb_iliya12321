@@ -1,5 +1,7 @@
 # **YaMDb**
 
+### ![Я](https://yastatic.net/q/logoaas/v2/Яндекс.svg?circle=black&color=000&first=white)![Практикум](https://yastatic.net/q/logoaas/v2/Практикум.svg?color=000)
+
 **YaMDb** ***спроектирован при совместном взаимодействии***
 
 [***Орлов Сергей***](https://github.com/sergio7523)
