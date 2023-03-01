@@ -60,7 +60,7 @@ ___
 
 + *Клонируем репозиторий*
 ```
-git clone git@github.com:Owlachno/api_yamdb.git
+git clone <HTTPS or SSH>
 ```
 + *Переходим в репозиторий*
 ```
